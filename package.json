@@ -28,9 +28,12 @@
     "mocha": "^6.2.0",
     "typescript": "^3.5.3"
   },
+  "bin": {
+    "osdg": "./dist/cli.js"
+  },
   "scripts": {
     "build": "tsc",
-    "start": "node dist/src/index.js",
+    "start": "node dist/cli.js",
     "test": "node dist/test/index.js"
   }
 }
