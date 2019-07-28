@@ -1,0 +1,4 @@
+.idea
+node_modules
+synthetic_data_files
+dist
