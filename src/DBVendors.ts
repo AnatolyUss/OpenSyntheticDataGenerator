@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /*
  * This file is a part of "OpenSyntheticDataGenerator" - the synthetic data creation tool.
  *
@@ -19,5 +18,8 @@
  *
  * @author Anatoly Khaytovich <anatolyuss@gmail.com>
  */
-const [,, ...args] = process.argv;
-console.log(`Hello ${ args }`);
+enum DBVendors {
+    mysql,
+}
+
+export default DBVendors;
