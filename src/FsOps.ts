@@ -26,13 +26,13 @@ export class FsOps {
     /**
      * Reads the configuration file.
      */
-    static readConfig(baseDir: string, configFileName: string): Promise<any> {
+    static readFile (baseDir: string, fileName: string): Promise<any> {
         return new Promise<any>(resolve => {
-            const strPathToConfig = path.join(baseDir, 'config', configFileName);
+            const pathToConfig: string = path.join(baseDir, fileName);
 
-            fs.readFile(strPathToConfig, (error: ErrnoException | null, data: Buffer) => {
+            fs.readFile(pathToConfig, (error: ErrnoException | null, data: Buffer) => {
                 if (error) {
-                    console.log(`\n\t--Cannot read configuration from  ${ strPathToConfig }`);
+                    console.log(`\n\t--Cannot read configuration from  ${ pathToConfig }`);
                     process.exit();
                 }
 
@@ -42,6 +42,31 @@ export class FsOps {
                     console.log('\n\t--Configuration file is not in json format.');
                     process.exit();
                 }
+            });
+        });
+    }
+
+    /**
+     * Reads synthetic data configuration.
+     */
+    static readSyntheticDataConfiguration (baseDir: string, confDir: string): Promise<any> {
+        return new Promise<any>(resolve => {
+            const pathToSyntheticDataConfiguration: string = path.join(baseDir, 'config', confDir);
+
+            fs.readdir(pathToSyntheticDataConfiguration, async (error, files) => {
+                if (error) {
+                    console.log(`\n\t--Cannot read configuration from  ${ pathToSyntheticDataConfiguration }`);
+                    process.exit();
+                }
+
+                const syntheticDataConfiguration: any = Object.create(null);
+
+                const promises: Promise<any>[] = files.map(async (tableName: string) => {
+                    syntheticDataConfiguration[tableName] = await FsOps.readFile(pathToSyntheticDataConfiguration, tableName);
+                });
+
+                await Promise.all(promises);
+                resolve(syntheticDataConfiguration);
             });
         });
     }
