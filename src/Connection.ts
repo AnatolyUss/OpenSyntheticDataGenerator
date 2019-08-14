@@ -18,37 +18,62 @@
  *
  * @author Anatoly Khaytovich <anatolyuss@gmail.com>
  */
+import * as path from 'path';
+import { Encoding } from './Types/Encoding';
+import { ConnectionPool } from './Types/ConnectionPool';
+import { DBVendor } from './Types/DBVendor';
+
 export class Connection {
     /**
      * Current database vendor.
      */
-   public dbVendor: string;
+   public readonly dbVendor: DBVendor;
 
     /**
      * Connection parameters to current database.
      */
-   public connection: any;
+   public readonly connection: any;
 
     /**
      * Directory, from which data files will be imported into current database.
      */
-   public dbUploadsPath: string;
+   public readonly dbUploadsPath: string;
 
     /**
      * Maximal amount of simultaneous connections to current database server.
      */
-   public connectionPoolSize: number;
+   public readonly connectionPoolSize: number;
 
     /**
      * Valid JavaScript encoding type.
      */
-   public encoding: string;
+   public readonly encoding: Encoding;
 
     /**
      * A name of the schema, that contains all tables.
      * !!!Note, schema parameter is relevant only for database servers that use schemas, for example: PostgreSQL.
      */
-   public schema: string;
+   public readonly schema: string;
+
+    /**
+     * The path to the logs directory.
+     */
+   public readonly logsDirectoryPath: string;
+
+    /**
+     * The path to the "logs.txt" file.
+     */
+   public readonly logsFilePath: string;
+
+    /**
+     * The path to the "errors.txt" file.
+     */
+   public readonly errorLogsFilePath: string;
+
+    /**
+     * Connection pool instance.
+     */
+   public connectionPool?: ConnectionPool;
 
     /**
      * Class constructor.
@@ -60,5 +85,8 @@ export class Connection {
        this.connectionPoolSize = connectionConfiguration.connection_pool_size || 10;
        this.encoding = connectionConfiguration.encoding || 'utf8';
        this.schema = connectionConfiguration.schema || 'public';
+       this.logsDirectoryPath = path.join(__dirname, '..', 'logs_directory');
+       this.logsFilePath = path.join(this.logsDirectoryPath, 'logs.txt');
+       this.errorLogsFilePath = path.join(this.logsDirectoryPath, 'errors.txt');
    }
 }

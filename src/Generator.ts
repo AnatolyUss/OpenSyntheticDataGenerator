@@ -19,29 +19,54 @@
  * @author Anatoly Khaytovich <anatolyuss@gmail.com>
  */
 import * as path from 'path';
+import { DBVendor } from './Types/DBVendor';
 import { Connection } from './Connection';
 import { FsOps } from './FsOps';
+import { DBAccess } from './Queries/DBAccess';
+import { MySqlQueries } from './Queries/MySqlQueries';
 
 export class Generator {
-    private static _tablesMetadata: string[];
     private static _syntheticDataFilesPath: string;
     private static _tablesConfiguration: any;
+    private static _connection: Connection;
 
-    static async generate () {
+    public static async generate () {
         const startTime: Date = new Date();
         const baseDir: string = path.join(__dirname, '..', '..');
         const configFileName: string = 'connection.json';
         const config: any = await FsOps.readFile(path.join(baseDir, 'config'), configFileName);
-        const connection: Connection = new Connection(config);
-        Generator._syntheticDataFilesPath = path.join(connection.dbUploadsPath, 'synthetic_data_files');
+        Generator._connection = new Connection(config);
+        Generator._syntheticDataFilesPath = path.join(Generator._connection.dbUploadsPath, 'synthetic_data_files');
         Generator._tablesConfiguration = await FsOps.readSyntheticDataConfiguration(baseDir, 'synthetic_data_configuration');
+        await Generator._getTablesConstraints();
 
-        console.log(Generator._syntheticDataFilesPath); // TODO: remove asap.
-        console.log();
-        console.log();
-        console.log(JSON.stringify(Generator._tablesConfiguration));
+        // console.log(JSON.stringify(Generator._tablesConfiguration)); // TODO: remove asap.
 
-        Generator.outputTimeTaken(startTime);
+        Generator._outputTimeTaken(startTime);
+    }
+
+    /**
+     * Assigns each table's configuration object with relational constraints info.
+     */
+    private static async _getTablesConstraints (): Promise<void> {
+        const dbAccess: DBAccess = <DBAccess> await Generator._getQueriesInstance();
+        await dbAccess.getTablesConstraints(Generator._tablesConfiguration);
+    }
+
+    /**
+     * Returns appropriate queries class's instance.
+     */
+    private static async _getQueriesInstance (): Promise<DBAccess | undefined> {
+        const dbVendor: DBVendor = Generator._connection.dbVendor;
+
+        switch (dbVendor) {
+            case 'mysql':
+                return new MySqlQueries(Generator._connection);
+            default:
+                const message: string = `Database vendor ${ dbVendor } currently unsupported.`;
+                await FsOps.generateError(Generator._connection, message);
+                process.exit(1);
+        }
     }
 
     /**
@@ -68,7 +93,7 @@ export class Generator {
     /**
      * Outputs time, taken for seeding process.
      */
-    static outputTimeTaken (startTime: Date): void {
+    private static _outputTimeTaken (startTime: Date): void {
         const endTime: Date = new Date();
         let differenceSec: number = (endTime.getTime() - startTime.getTime()) / 1000;
         const seconds: number = Math.floor(differenceSec % 60);
@@ -80,5 +105,6 @@ export class Generator {
         const formattedSeconds: string = seconds < 10 ? `0${seconds}` : `${seconds}`;
         const output: string = `Total time: ${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
         console.log(output);
+        process.exit(0);
     }
 }
