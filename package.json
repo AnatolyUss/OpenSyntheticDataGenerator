@@ -25,7 +25,7 @@
     "@types/node": "^12.6.8",
     "@types/pg": "^7.4.14",
     "@types/mocha": "^5.2.7",
-    "mocha": "^6.2.0",
+    "mocha": "^10.2.0",
     "typescript": "^3.5.3"
   },
   "bin": {
